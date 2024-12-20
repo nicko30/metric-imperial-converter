@@ -1,37 +1,61 @@
-"use strict";
+/*
+*
+*
+*       Complete the API routing below
+*
+*
+*/
 
-const expect = require("chai").expect;
-const ConvertHandler = require("../controllers/convertHandler.js");
+'use strict';
+
+var expect = require('chai').expect;
+var ConvertHandler = require('../controllers/convertHandler.js');
 
 module.exports = function (app) {
-  let convertHandler = new ConvertHandler();
 
-  app.route("/api/convert").get((req, res) => {
-    const { input } = req.query;
-    if (!input) {
-      return res.send("invalid input");
-    }
-    const initNum = convertHandler.getNum(input);
-    const initUnit = convertHandler.getUnit(input);
+	var convertHandler = new ConvertHandler();
 
-    if (initNum === "invalid number" && initUnit === "invalid unit") {
-      return res.send("invalid number and unit");
-    }
-    if (initNum === "invalid number") {
-      return res.send("invalid number");
-    }
-    if (initUnit === "invalid unit") {
-      return res.send("invalid unit");
-    }
+	app.route('/api/convert').get(function (req, res) {
+		if (req.query.input === undefined || req.query.input === '') {
+			return res.send('input is required');
+		}
 
-    const returnUnit = convertHandler.getReturnUnit(initUnit);
-    const returnNum = convertHandler.convert(initNum, initUnit);
-    const string = convertHandler.getString(
-      initNum,
-      initUnit,
-      returnNum,
-      returnUnit
-    );
-    res.json({ initNum, initUnit, returnNum, returnUnit, string });
-  });
+		var input = req.query.input;
+
+		let errorText = '';
+
+		var initNum = convertHandler.getNum(input);
+
+		if (initNum <= 0 || !Number.isFinite(initNum)) {
+			errorText = 'invalid number';
+		}
+
+		var initUnit = convertHandler.getUnit(input);
+
+		if (initUnit === undefined) {
+			if (errorText !== '') {
+				errorText = 'invalid number and unit';
+			} else {
+				errorText = 'invalid unit';
+			}
+		}
+
+		if (errorText !== '') {
+			return res.send(errorText);
+		}
+
+		var returnNum = convertHandler.convert(initNum, initUnit);
+		var returnUnit = convertHandler.getReturnUnit(initUnit);
+
+		var toString = convertHandler.getString(initNum, initUnit, returnNum, returnUnit);
+
+		return res.json({
+			initNum: initNum,
+			initUnit: initUnit,
+			returnNum: returnNum,
+			returnUnit: returnUnit,
+			string: toString
+		});
+	});
+
 };
