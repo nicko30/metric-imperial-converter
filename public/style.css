@@ -1,7 +1,7 @@
-#convertField {
-	width: 150px;
+code {
+    background-color: whitesmoke;
 }
 
-#result {
-	margin: 1rem 0;
+section, header {
+    margin: 50px;
 }

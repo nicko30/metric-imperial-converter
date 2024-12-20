@@ -1,61 +1,35 @@
-/*
-*
-*
-*       Complete the API routing below
-*
-*
-*/
-
 'use strict';
 
-var expect = require('chai').expect;
-var ConvertHandler = require('../controllers/convertHandler.js');
+const expect = require('chai').expect;
+const ConvertHandler = require('../controllers/convertHandler.js');
 
 module.exports = function (app) {
+  
+  let convertHandler = new ConvertHandler();
 
-	var convertHandler = new ConvertHandler();
+  app.get('/api/convert', (req, res) => {
+    let input = req.query.input
 
-	app.route('/api/convert').get(function (req, res) {
-		if (req.query.input === undefined || req.query.input === '') {
-			return res.send('input is required');
-		}
+    let getNum = convertHandler.getNum(input)
+    let getUnit = convertHandler.getUnit(input)
+    let getReturnUnit = convertHandler.getReturnUnit(getUnit)
+    let spellOutUnit = convertHandler.spellOutUnit(getUnit) //returns object with keys 'initUnit' and 'returnUnit'
+    let convert = convertHandler.convert(getNum, getUnit)
+    let getString = convertHandler.getString(getNum, spellOutUnit.initUnit, convert, spellOutUnit.returnUnit)
 
-		var input = req.query.input;
-
-		let errorText = '';
-
-		var initNum = convertHandler.getNum(input);
-
-		if (initNum <= 0 || !Number.isFinite(initNum)) {
-			errorText = 'invalid number';
-		}
-
-		var initUnit = convertHandler.getUnit(input);
-
-		if (initUnit === undefined) {
-			if (errorText !== '') {
-				errorText = 'invalid number and unit';
-			} else {
-				errorText = 'invalid unit';
-			}
-		}
-
-		if (errorText !== '') {
-			return res.send(errorText);
-		}
-
-		var returnNum = convertHandler.convert(initNum, initUnit);
-		var returnUnit = convertHandler.getReturnUnit(initUnit);
-
-		var toString = convertHandler.getString(initNum, initUnit, returnNum, returnUnit);
-
-		return res.json({
-			initNum: initNum,
-			initUnit: initUnit,
-			returnNum: returnNum,
-			returnUnit: returnUnit,
-			string: toString
-		});
-	});
-
+    if (getNum && getUnit) {
+       res.json({ 
+        initNum: getNum,
+        initUnit: getUnit,
+        returnNum: convert,
+        returnUnit: getReturnUnit,
+        string: getString })
+    } else if (!getNum && !getUnit) {
+       res.status(200).json({error: 'invalid number and unit'})
+    } else if (!getNum) {
+       res.status(200).json({error: 'invalid number'})
+    } else if (!getUnit) {
+       res.status(200).json({error: 'invalid unit'})
+    } 
+  })
 };
